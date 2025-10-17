@@ -37,7 +37,6 @@ export default function PdfUploadForm() {
     setUserAnswers({});
     setIsGraded(false);
     setCorrectCount(0);
-    setIsProcessing(false); 
   };
   
   const resetAllState = () => {
@@ -73,7 +72,7 @@ export default function PdfUploadForm() {
   const handleNewQuiz = async () => {
       if (file && extractedData) {
           resetQuizState();
-          setIsProcessing(true);
+          setIsProcessing(true); 
           setGeneratedQuestions(null);
           
           try {
@@ -96,7 +95,7 @@ export default function PdfUploadForm() {
               console.error('새 문제 생성 중 오류 발생:', error);
               alert('새 문제 생성 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
           } finally {
-              setIsProcessing(false);
+              setIsProcessing(false); 
           }
       } else {
           alert('먼저 PDF를 업로드하고 문제를 생성해야 합니다.');
@@ -137,7 +136,12 @@ export default function PdfUploadForm() {
     e.preventDefault();
     if (!file) return;
 
-    setIsProcessing(true);
+    // 💡 수정 핵심: setIsProcessing(true)를 먼저 호출하여 로딩 상태를 즉시 반영
+    setIsProcessing(true); 
+    
+    // 💡 버그 수정: Vercel 환경에서 로딩 상태가 화면에 반영되도록 강제로 지연
+    await new Promise(resolve => setTimeout(resolve, 50)); 
+    
     resetQuizState(); 
     setExtractedData(null); 
 
@@ -163,7 +167,9 @@ export default function PdfUploadForm() {
       const data = await apiResponse.json();
       setGeneratedQuestions(data.result as GeneratedQuestionsResult); 
       
-      // 🚨 경고 제거: problemCount 변수 선언을 제거했습니다.
+      const problemCount = data.result.questions.length;
+
+      alert(`🎉 시험 문제 생성 성공! 총 ${problemCount} 문제가 준비되었습니다. (10문제 요청, GPT-4o 사용)`);
 
     } catch (error) {
       console.error('전체 처리 과정 중 오류 발생:', error);
@@ -200,6 +206,7 @@ export default function PdfUploadForm() {
           <input type="file" accept="application/pdf" onChange={handleFileChange} />
           <button 
             type="submit" 
+            // 파일이 없거나(null) 처리 중일 때만 비활성화
             disabled={!file || isProcessing} 
             style={{ marginLeft: '10px', padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
           >
@@ -208,7 +215,7 @@ export default function PdfUploadForm() {
         </div>
       )}
       
-      {/* 💡 문제 생성 중 로딩 메시지 */}
+      {/* 💡 문제 생성 중 로딩 메시지 (시각적 피드백 개선) */}
       {isProcessing && !generatedQuestions && (
         <div style={{ 
             padding: '15px', 
@@ -217,7 +224,7 @@ export default function PdfUploadForm() {
             marginBottom: '20px', 
             fontWeight: 'bold', 
             color: '#cc9900',
-            display: 'flex', 
+            display: 'flex', // 아이콘과 텍스트 정렬
             alignItems: 'center'
         }}>
             <span style={{ marginRight: '10px', fontSize: '1.2em' }}>⚙️</span> 
