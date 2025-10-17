@@ -136,11 +136,7 @@ export default function PdfUploadForm() {
     e.preventDefault();
     if (!file) return;
 
-    // 💡 생성 시작 시 isProcessing=true 설정
     setIsProcessing(true);
-    // 🚨 수정: 최소 지연 시간 코드 제거 (작업이 완료될 때까지 로딩 상태 유지)
-    // await new Promise(resolve => setTimeout(resolve, 50)); 
-    
     resetQuizState(); 
     setExtractedData(null); 
 
@@ -174,7 +170,6 @@ export default function PdfUploadForm() {
       console.error('전체 처리 과정 중 오류 발생:', error);
       alert('오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
     } finally {
-      // 💡 생성 완료/실패 시 isProcessing=false 설정
       setIsProcessing(false); 
     }
   };
@@ -238,7 +233,7 @@ export default function PdfUploadForm() {
         <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '15px' }}>
             <h2>✅ 생성된 시험 문제 ({generatedQuestions.questions.length}개)</h2>
             
-            {/* 새로운 버튼 그룹 (UX) */}
+            {/* 새로운 버튼 그룹 (UX) - 상단 */}
             <div style={{ marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
                 {isGraded && (
                     <button 
@@ -273,19 +268,7 @@ export default function PdfUploadForm() {
                 </div>
             )}
             
-            {/* 3. 채점하기 버튼 */}
-            {!isGraded && (
-                <div style={{ marginTop: '30px', paddingTop: '15px', borderTop: '1px solid #eee', textAlign: 'center' }}>
-                    <button 
-                        type="button" 
-                        onClick={handleGrade}
-                        style={{ padding: '12px 30px', backgroundColor: '#ffc107', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-                    >
-                        채점하기
-                    </button>
-                </div>
-            )}
-
+            {/* 3. 문제 목록 영역 */}
             {generatedQuestions.questions.map((q, index) => {
                 const userAnswerNormalized = (userAnswers[index] || '').trim().toUpperCase();
                 const isCorrect = isGraded && (userAnswerNormalized === q.answer.trim().toUpperCase());
@@ -361,6 +344,19 @@ export default function PdfUploadForm() {
                     </div>
                 );
             })}
+            
+            {/* 💡 채점하기 버튼 - 문제 목록 영역의 가장 마지막에 배치 */}
+            {!isGraded && (
+                <div style={{ marginTop: '30px', paddingTop: '15px', borderTop: '1px solid #eee', textAlign: 'center' }}>
+                    <button 
+                        type="button" 
+                        onClick={handleGrade}
+                        style={{ padding: '12px 30px', backgroundColor: '#ffc107', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                    >
+                        채점하기
+                    </button>
+                </div>
+            )}
         </div>
       )}
     </form>
