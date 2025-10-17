@@ -1,0 +1,10 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Notion 스타일 기반 (CSS 오류 방지를 위해 순수 CSS로 작성) */
+body {
+  background-color: #f9fafb; /* bg-gray-50 대체 */
+  color: #374151; /* text-gray-800 대체 */
+}
