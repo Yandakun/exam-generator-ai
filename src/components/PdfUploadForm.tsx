@@ -37,6 +37,7 @@ export default function PdfUploadForm() {
     setUserAnswers({});
     setIsGraded(false);
     setCorrectCount(0);
+    setIsProcessing(false); 
   };
   
   const resetAllState = () => {
@@ -72,7 +73,7 @@ export default function PdfUploadForm() {
   const handleNewQuiz = async () => {
       if (file && extractedData) {
           resetQuizState();
-          setIsProcessing(true); 
+          setIsProcessing(true);
           setGeneratedQuestions(null);
           
           try {
@@ -95,7 +96,7 @@ export default function PdfUploadForm() {
               console.error('새 문제 생성 중 오류 발생:', error);
               alert('새 문제 생성 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
           } finally {
-              setIsProcessing(false); 
+              setIsProcessing(false);
           }
       } else {
           alert('먼저 PDF를 업로드하고 문제를 생성해야 합니다.');
@@ -136,10 +137,7 @@ export default function PdfUploadForm() {
     e.preventDefault();
     if (!file) return;
 
-    // 💡 수정 핵심: setIsProcessing(true)를 먼저 호출하여 로딩 상태를 즉시 반영
-    setIsProcessing(true); 
-    
-    // 💡 버그 수정: Vercel 환경에서 로딩 상태가 화면에 반영되도록 강제로 지연
+    setIsProcessing(true);
     await new Promise(resolve => setTimeout(resolve, 50)); 
     
     resetQuizState(); 
@@ -224,7 +222,7 @@ export default function PdfUploadForm() {
             marginBottom: '20px', 
             fontWeight: 'bold', 
             color: '#cc9900',
-            display: 'flex', // 아이콘과 텍스트 정렬
+            display: 'flex', 
             alignItems: 'center'
         }}>
             <span style={{ marginRight: '10px', fontSize: '1.2em' }}>⚙️</span> 
@@ -238,7 +236,7 @@ export default function PdfUploadForm() {
         <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '15px' }}>
             <h2>✅ 생성된 시험 문제 ({generatedQuestions.questions.length}개)</h2>
             
-            {/* 새로운 버튼 그룹 (UX) */}
+            {/* 새로운 버튼 그룹 (UX) - 상단 */}
             <div style={{ marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
                 {isGraded && (
                     <button 
@@ -273,17 +271,7 @@ export default function PdfUploadForm() {
                 </div>
             )}
             
-            {/* 3. 채점하기 버튼 */}
-            {!isGraded && (
-                <button 
-                    type="button" 
-                    onClick={handleGrade}
-                    style={{ padding: '10px 15px', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer', marginBottom: '20px' }}
-                >
-                    채점하기
-                </button>
-            )}
-
+            {/* 3. 문제 목록 영역 */}
             {generatedQuestions.questions.map((q, index) => {
                 const userAnswerNormalized = (userAnswers[index] || '').trim().toUpperCase();
                 const isCorrect = isGraded && (userAnswerNormalized === q.answer.trim().toUpperCase());
@@ -359,6 +347,19 @@ export default function PdfUploadForm() {
                     </div>
                 );
             })}
+            
+            {/* 💡 채점하기 버튼 - 문제 목록 영역의 가장 마지막에 배치 */}
+            {!isGraded && (
+                <div style={{ marginTop: '30px', paddingTop: '15px', borderTop: '1px solid #eee', textAlign: 'center' }}>
+                    <button 
+                        type="button" 
+                        onClick={handleGrade}
+                        style={{ padding: '12px 30px', backgroundColor: '#ffc107', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                    >
+                        채점하기
+                    </button>
+                </div>
+            )}
         </div>
       )}
     </form>
