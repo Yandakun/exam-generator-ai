@@ -45,29 +45,33 @@ export async function POST(request: Request) {
     // 프롬프트 구성 (MessageContent 타입 사용)
     const finalInstruction: MessageContent = {
         type: "text",
+        // 🚨 수정: 4지선다, 정답 1개, 중복 방지 지침 반영
         text: `다음은 PDF에서 추출한 텍스트 전문입니다: \n\n${fullTextContent}\n\n위 텍스트를 분석하여 해당 내용에 기반한 총 10개의 시험 문제를 한국어로 생성해 주세요.
         
         ### 문제 유형 및 개수 요구 사항
-        1. 객관식(5지선다) 문제: 8개
+        1. 객관식(4지선다) 문제: 8개 (각 문제는 정답이 반드시 1개여야 합니다.)
         2. 주관식(단답형) 문제: 2개
+        
+        ### 중복 방지 및 창의성 지침
+        - 이전에 출제되지 않은 새로운 영역의 내용을 탐색하여 문제를 생성하십시오.
+        - 객관식 보기 4개(A, B, C, D) 중 정답은 반드시 1개여야 하며, 명확해야 합니다.
         
         ### 출력 형식 (JSON)
         반드시 'questions' 키를 가진 최상위 JSON 객체 { "questions": [...] } 형태로만 반환해야 합니다.
         'questions' 배열은 다음 규칙을 따르는 10개의 객체를 포함해야 합니다:
 
-        객관식(type: 'MULTIPLE_CHOICE'): options 필드에 A부터 E까지 5개의 보기를 포함해야 합니다.
+        객관식(type: 'MULTIPLE_CHOICE'): options 필드에 A부터 D까지 4개의 보기를 포함해야 합니다.
         주관식(type: 'SHORT_ANSWER'): options 필드는 반드시 빈 배열 []이어야 합니다.
 
         예시 구조:
         {
           "questions": [
-            { "type": "MULTIPLE_CHOICE", "question": "...", "options": ["...", "...", "...", "...", "..."], "answer": "A", "explanation": "..." },
+            { "type": "MULTIPLE_CHOICE", "question": "...", "options": ["...", "...", "...", "..."], "answer": "A", "explanation": "..." },
             { "type": "SHORT_ANSWER", "question": "...", "options": [], "answer": "단답형 정답", "explanation": "..." }
           ]
         }`,
     };
     
-    // 🚨 수정: MessageContent 타입 배열로 명확히 지정하여 any 오류 해결
     const contents: MessageContent[] = [finalInstruction]; 
 
     // 4. OpenAI API 호출
@@ -76,18 +80,19 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'user',
-          content: contents, // 이제 MessageContent[] 타입입니다.
+          content: contents,
         },
       ],
       response_format: { type: "json_object" }, 
-      temperature: 0.2,
+      // 🚨 수정: 중복 방지 및 창의성을 위해 temperature를 0.5로 설정
+      temperature: 0.5, 
       max_tokens: 8000,
     });
 
     // 5. AI 응답 처리 및 반환
     const rawResponseText = response.choices[0].message.content;
     
-    // 토큰 사용량 정보를 추출
+    // 토큰 사용량 정보를 추출 (클라이언트에서 사용하지 않으므로 제거 가능)
     const usage = response.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
 

@@ -285,7 +285,10 @@ export default function PdfUploadForm() {
                         {q.type === 'MULTIPLE_CHOICE' && (
                             <div style={{ margin: '10px 0' }}>
                                 {q.options.map((opt, i) => {
-                                    const optionKey = String.fromCharCode(65 + i); // A, B, C...
+                                    // 🚨 수정 핵심: 4지선다에 맞춰 A, B, C, D까지만 렌더링하도록 조건 추가
+                                    if (i >= 4) return null; // 4개 초과 보기는 무시
+                                    
+                                    const optionKey = String.fromCharCode(65 + i); // A, B, C, D
                                     const isSelected = userAnswers[index] === optionKey;
                                     return (
                                         <div 
